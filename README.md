@@ -1,0 +1,2 @@
+# effective_ansible
+Ansible実践ガイド第2版お試し
