@@ -1,0 +1,45 @@
+---
+## データべースのデプロイ
+- name: Dploy Database for Wordpress
+  hosts: databases
+  become: true
+##  sudoのパスワードが必要な場合
+  vars:
+    ansible_sudo_pass: 'ansible'
+##  インターネット接続にプロキシが必要な場合
+#  environment:
+#    http_proxy: "http://proxy.example.local:8080"
+#    https_proxy: "http://proxy.example.local:8080"
+  roles:
+    - { role: common, tags: common}    ##(1)OSの基本設定
+    - { role: mariadb, tags: mariadb}  ##(2)データベースの構築
+##  (3)データベース接続用ロードバランサの構築
+#    - { role: haproxy, cluster_service: db_cluster, tags: haproxy}
+#    - { role: keepalived, cluster_service: db_cluster, tags: keepalived}
+
+## アプリケーションのデプロイ
+- name: Deploy Application for WordPress
+  hosts: apps
+  become: true
+##  sudoのパスワードが必要な場合
+  vars:
+    ansible_sudo_pass: 'ansible'
+  roles:
+    - { role: common, tags: common}   ##(1)OSの基本設定
+    - { role: nginx, tags: nginx}      ##(2)PHP実行環境の構築
+    - { role: php-fpm, tags: php-fpm}
+    - { role: wordpress, tags: wordpress}  ##(5)WordPressの展開
+
+## ロードバランサーのデプロイ
+#- name: Deploy LoadBalancer for WordPress
+#  hosts: lbs
+#  become: true
+##  sudoのパスワードが必要な場合
+#  vars:
+#    ansible_sudo_pass: 'ansible'
+#  roles:
+#    - { role: common, tags: common}    ##(1)OSの基本設定
+## (6)アプリケーション接続用ロードバランサの構築
+#    - { role: haproxy, cluster_service: app_cluster, tags: haproxy}
+#    - { role: keepalived, cluster_service: app_xluster, tags: keepalived}
+ 

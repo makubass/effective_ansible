@@ -1,0 +1,37 @@
+---
+- name: Initialize OS setting for Linux Servers
+  hosts: linux_servers
+  become: true
+  vars:
+    ansible_sudo_pass: 'ansible'
+  roles:
+    - name: common/locale     ##(1)ロケール管理
+      tags: locale
+    - name: common/packages   ##(2)パッケージ管理
+      tags: packages
+    - name: common/users      ##(3)ユーザー管理
+      tags: users
+    - name: common/networks   ##(4)ネットワーク管理
+      tags: net
+    - name: common/resolver   ##(5)リゾルバ管理
+      tags: resolver
+    - role: common/times      ##(6)時刻管理
+      tags: time
+
+  post_tasks:
+    - name: Restart target nodes
+      shell: >
+             sleep 2 &&
+             shutdown -r now "Ansible initialized"
+      async: 5
+      poll: 0
+      ignore_erros: true
+
+    - name: Waiting for server to come back
+      local_action:
+        module: wait_for
+        host: "{{ ansible_host }}"
+        port: 22
+        state: started
+        delay: 30
+        timeout: 300
